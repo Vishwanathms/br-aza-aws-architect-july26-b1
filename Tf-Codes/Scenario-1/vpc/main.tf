@@ -163,7 +163,7 @@ resource "local_file" "private_key" {
 
 # EC2 instances
 resource "aws_instance" "public_ec2" {
-  ami                    = data.aws_ami.amazon_linux_2.id
+  ami                    = data.aws_ami.amazon_linux_3.id
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.public[0].id
   associate_public_ip_address = true
@@ -173,7 +173,7 @@ resource "aws_instance" "public_ec2" {
 }
 
 resource "aws_instance" "private_ec2" {
-  ami                    = data.aws_ami.amazon_linux_2.id
+  ami                    = data.aws_ami.amazon_linux_3.id
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.private[0].id
   associate_public_ip_address = false
