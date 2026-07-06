@@ -14,12 +14,9 @@ resource "aws_internet_gateway" "igw" {
   tags   = merge(var.tags, { Name = "${local.name_prefix}-igw" })
 }
 
-data "aws_default_route_table" "default" {
-  default_route_table_id = aws_vpc.vpc01.default_route_table_id
-}
 
 resource "aws_route" "default_internet" {
-  route_table_id         = data.aws_default_route_table.default.id
+  route_table_id         = aws_vpc.vpc01.default_route_table_id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.igw.id
 }
@@ -49,7 +46,7 @@ resource "aws_subnet" "private" {
 resource "aws_route_table_association" "public_assoc" {
   count = length(aws_subnet.public)
 
-  route_table_id = data.aws_default_route_table.default.id
+  route_table_id = aws_vpc.vpc01.default_route_table_id
   subnet_id      = aws_subnet.public[count.index].id
 }
 
