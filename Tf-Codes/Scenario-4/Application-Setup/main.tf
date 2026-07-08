@@ -234,7 +234,7 @@ resource "aws_launch_template" "nginx_lt" {
     name = aws_iam_instance_profile.ssm_profile.name
   }
 
-  user_data_base64 = base64encode(<<-EOF
+  user_data = base64encode(<<-EOF
     #!/bin/bash
     set -e
     dnf update -y

@@ -1,30 +1,45 @@
+# Scenario-2: VPC with Public EC2 and Private Tier behind ALB
 
-Want to create VPC, 
-Subnets -- 2 Public , 2 Private
-Attach the internet gateway to the default Route Table
-Attach Public subnets sub1 and sub2 to the default route table
-Create NAT gateway using Sub1 for "Zone" option
-Create a new route table,
-Associate sub3 and sub4 to new route table
-Update the new route table with 0.0.0.0/0 towards nat gateway
+## Overview
+This scenario extends the basic networking setup by adding a public EC2 instance, two private EC2 instances, and an Application Load Balancer in front of the private tier.
 
-Variablize it with best practice 
-Create terraform.tfvars for input values 
+## What is created
+- One VPC
+- Two public subnets
+- Two private subnets
+- Internet Gateway and NAT Gateway
+- A public EC2 instance in the public subnet
+- Two private EC2 instances, one in each private subnet
+- IAM role and instance profile for AWS Systems Manager
+- Security groups for web access and ALB traffic
+- An Application Load Balancer
+- A target group attached to the private instances
+- HTTPD installation using user data on the EC2 instances
 
+## Architecture flow
+```text
+Internet → ALB → Private EC2 instances
+```
 
+## Key features
+- Public web access is handled by the ALB
+- Private instances host web content via HTTPD
+- SSM is configured for management of all EC2 instances
+- User data provides different index.html content per instance
 
-Add Security Group 
-Allowing , SSH, ICMP and HTTP
+## Files in this folder
+- main.tf: network infrastructure
+- ec2.tf: EC2 instances, IAM, and user data
+- alb.tf: ALB, target group, and listener
+- variables.tf: configurable variables
+- outputs.tf: deployment outputs
 
-Create keys
-
-Create 1 Public  ec2 instnace in Sub1 public subnet
-Create 2 private ec2 instance , one each in each private subnet
-Create role for Systems manager
-Install SSM on all the ec2 instance and assign the systems manager role on all the ec2 instance.
-Using userdata install httpd service and make sure to have different output on index.html
-Create target group, for these 2 private ec2 instance on port 80, with health check on index.html
-Create loadbalancer ALB, and attach the target group 
-
+## Typical deployment
+```bash
+cd Scenario-2
+terraform init
+terraform plan
+terraform apply
+```
 
 
