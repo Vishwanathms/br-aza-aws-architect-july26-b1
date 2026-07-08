@@ -1,109 +1,109 @@
 
 # Scenario-4: 3-Tier Application Architecture with Modular Terraform
 
-## Architecture Overview
+## Overview
 
-This scenario implements a modular 3-tier application architecture:
+This scenario creates a complete 3-tier web application stack on AWS using Terraform modules.
 
+Traffic flow:
+
+```text
+Internet → Application Load Balancer → Nginx Auto Scaling Group → Python App EC2 → Redis EC2
 ```
-Internet → ALB → Nginx ASG (Private) → Python App (Private) → Redis DB (Database Tier)
-```
 
-### Infrastructure Layers
+---
 
-1. **Public Tier (ALB)**
-   - Application Load Balancer in public subnets
-   - Handles incoming HTTP traffic
+## What is created
 
-2. **Application Tier**
-   - **Nginx Web Servers**: Auto Scaling Group (min: 1, max: 3, desired: 1)
-     - Acts as reverse proxy to Python app
-     - CPU-based autoscaling at 70% threshold
-   - **Python Flask App**: Single EC2 instance
-     - Runs on port 5000
-     - Connects to Redis for caching
-     - Includes health check endpoint
+### 1. Networking layer
+The VPC network module creates:
+- One VPC
+- One Internet Gateway
+- Two public subnets
+- Two private application subnets
+- Two database subnets
+- One NAT Gateway
+- Route tables and subnet associations
 
-3. **Database Tier**
-   - **Redis Database**: Single EC2 instance
-     - Isolated in database subnet
-     - No internet access via NAT
-     - Serves as cache for Python app
+### 2. Public access layer
+The public tier includes:
+- An Application Load Balancer (ALB)
+- A public-facing security group for HTTP access
+- A target group for the Nginx tier
 
-## Network Architecture
+### 3. Application tier
+The application tier includes:
+- An Nginx Auto Scaling Group
+  - Min size: 1
+  - Desired capacity: 1
+  - Max size: 3
+  - Uses a launch template
+  - Scales based on CPU utilization target of 70%
+- One Python EC2 instance running a Flask application
+  - Runs on port 5000
+  - Connects to Redis
+  - Exposes `/` and `/health` endpoints
 
-### Subnets (per AZ us-east-1a, us-east-1b)
-- **Public Subnets** (10.0.0.0/24, 10.0.1.0/24)
-  - IGW route to internet
-  - ALB placement
+### 4. Database tier
+The database tier includes:
+- One Redis EC2 instance
+- A dedicated database subnet
+- A Redis security group allowing only the Python app to connect
 
-- **Private Application Subnets** (10.0.2.0/24, 10.0.3.0/24)
-  - NAT Gateway route to internet
-  - Nginx and Python instances
+### 5. Management and security
+The deployment also creates:
+- An IAM role for AWS Systems Manager
+- An instance profile attached to EC2 instances
+- An SSH key pair
+- An optional private key file stored locally
+- Security groups for ALB, Nginx, Python, and Redis
 
-- **Database Subnets** (10.0.4.0/24, 10.0.5.0/24)
-  - No internet route (isolated)
-  - Redis DB instance
+---
 
-## Module Structure
+## Module structure
 
-### VPC_Netwrk Module
-Handles all networking components:
-- VPC with IGW
-- Public, private, and database subnets
-- NAT Gateway in public subnet
+### VPC_Netwrk module
+This module handles all network resources:
+- VPC and Internet Gateway
+- Public, private, and DB subnets
+- NAT Gateway
 - Route tables and associations
-- **Files:**
-  - `main.tf` - VPC and subnet resources
-  - `variables.tf` - Input variables
-  - `outputs.tf` - Network outputs (VPC ID, subnet IDs, etc.)
 
-### Application-Setup Module
-Implements the 3-tier application:
-- Security groups with proper ingress rules
-- SSH key generation
-- IAM role for Systems Manager
-- ALB with target group
-- Nginx launch template and ASG
-- Python Flask app EC2
-- Redis database EC2
-- User data scripts for all instances
-- **Files:**
-  - `main.tf` - All application resources
-  - `variables.tf` - Input variables
-  - `outputs.tf` - Application outputs
+### Application-Setup module
+This module handles the full application stack:
+- ALB and target group
+- Nginx launch template and autoscaling group
+- Python app EC2
+- Redis DB EC2
+- Security groups and IAM setup
+- User data scripts for software installation
 
-## Root Configuration
+---
 
-- `main.tf` - Module instantiation
-- `variables.tf` - Root variables passed to modules
-- `outputs.tf` - Consolidated outputs from both modules
-- `provider.tf` - AWS provider configuration
-- `terraform.tfvars` - Default variable values
-- `versions.tf` - Terraform and provider versions
+## User data setup
 
-## User Data Scripts
+### Nginx instances
+- Install nginx
+- Install amazon-ssm-agent
+- Start SSM agent
+- Configure reverse proxy to the Python app
 
-### Nginx Configuration
-- Installs nginx and SSM agent
-- Configures reverse proxy to Python app on port 5000
-- Auto-detects Python app IP
+### Python app instance
+- Install Python 3, pip, Flask, and Redis client
+- Start a Flask app on port 5000
+- Connect to Redis
 
-### Python Application
-- Installs Python3, Flask, and Redis client
-- Creates Flask app with `/` and `/health` endpoints
-- Connects to Redis for caching
-- Runs on port 5000
+### Redis instance
+- Install Redis
+- Enable and start the Redis service
+- Configure it to listen on all interfaces
 
-### Redis Database
-- Installs and enables Redis server
-- Configures to listen on all interfaces (0.0.0.0)
-- Accessible on port 6379
+---
 
-## Security Groups
+## Security groups created
 
-| SG Name | Port | Source | Purpose |
-|---------|------|--------|---------|
+| Component | Ports | Source | Purpose |
+|---|---:|---|---|
 | ALB SG | 80 | 0.0.0.0/0 | Public HTTP access |
 | Nginx SG | 80 | ALB SG | ALB to Nginx |
 | Nginx SG | 22 | 0.0.0.0/0 | SSH access |
@@ -112,7 +112,28 @@ Implements the 3-tier application:
 | Redis SG | 6379 | Python SG | Python to Redis |
 | Redis SG | 22 | 0.0.0.0/0 | SSH access |
 
-## Deployment Instructions
+---
+
+## Outputs from the deployment
+
+The configuration provides outputs for:
+- VPC ID
+- Public subnet IDs
+- Private subnet IDs
+- Database subnet IDs
+- Internet Gateway ID
+- NAT Gateway ID
+- ALB DNS name
+- Nginx autoscaling group name
+- Python app private IP
+- Redis private IP
+- Generated key pair name
+
+---
+
+## Deployment flow
+
+Run:
 
 ```bash
 cd Scenario-4
@@ -121,19 +142,19 @@ terraform plan
 terraform apply
 ```
 
-## Key Features
+---
 
-✓ Modular structure for maintainability
-✓ Separate network and application modules
-✓ Database tier isolation
-✓ Auto-scaling Nginx tier
-✓ Complete 3-tier application setup via user data
-✓ Proper security group chaining
-✓ Systems Manager access for all instances
-✓ Automatic SSH key generation and storage 
+## Summary
+
+Scenario-4 provisions a complete, modular AWS 3-tier architecture with:
+- Public web entry through an ALB
+- Private application hosting through an autoscaled Nginx tier
+- A dedicated Python application server
+- A Redis database server in isolated DB subnets
+- Security groups, IAM access, and SSM support for all EC2 instances
 
 Architecture diagram:
-- Open scenario-3-architecture.svg in your browser or VS Code preview to view the visual layout.
+- Open [scenario-4-architecture.svg](scenario-4-architecture.svg) in your browser or VS Code preview to view the visual layout.
 
 
 
