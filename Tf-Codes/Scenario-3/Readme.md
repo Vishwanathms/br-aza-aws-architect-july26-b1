@@ -26,5 +26,8 @@ Using userdata install httpd service and make sure to have different output on i
 Create target group, for these 2 private ec2 instance on port 80, with health check on index.html
 Create loadbalancer ALB, and attach the target group 
 
+Architecture diagram:
+- Open scenario-3-architecture.svg in your browser or VS Code preview to view the visual layout.
+
 
 
