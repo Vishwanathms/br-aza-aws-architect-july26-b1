@@ -204,7 +204,7 @@ status: running
 
 ---
 
-# Step 7 – Generate Test Logs
+# Step 7 – Generate Test Logs -- Run on the EC2 instance
 
 Generate Apache logs.
 
