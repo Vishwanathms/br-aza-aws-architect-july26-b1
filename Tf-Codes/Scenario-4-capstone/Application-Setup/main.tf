@@ -384,7 +384,8 @@ if __name__ == '__main__':
 resource "aws_instance" "redis_db" {
   ami                    = data.aws_ami.amazon_linux_3.id
   instance_type          = var.instance_type
-  subnet_id              = var.db_subnet_ids[0]
+  #subnet_id              = var.db_subnet_ids[0]
+  subnet_id              = var.private_subnet_ids[1]
   vpc_security_group_ids = [aws_security_group.redis_sg.id]
   key_name               = aws_key_pair.generated.key_name
   iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
@@ -393,17 +394,17 @@ resource "aws_instance" "redis_db" {
     #!/bin/bash
     set -e
     dnf update -y
-    dnf install -y amazon-ssm-agent redis
+    dnf install -y amazon-ssm-agent redis6
 
     systemctl enable amazon-ssm-agent
     systemctl start amazon-ssm-agent
 
-    systemctl enable redis
-    systemctl start redis
+    systemctl enable redis6
+    systemctl start redis6
 
     # Configure Redis to listen on all interfaces
-    sed -i 's/bind 127.0.0.1/bind 0.0.0.0/' /etc/redis/redis.conf
-    systemctl restart redis
+    sed -i 's/bind 127.0.0.1/bind 0.0.0.0/' /etc/redis6/redis6.conf
+    systemctl restart redis6
   EOF
   )
 
