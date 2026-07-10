@@ -92,6 +92,12 @@ resource "aws_route_table" "db" {
   tags   = merge(var.tags, { Name = "${local.name_prefix}-db-rt" })
 }
 
+resource "aws_route" "db_default_route" {
+  route_table_id         = aws_route_table.db.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat.id
+}
+
 # Associate database subnets to the database route table
 resource "aws_route_table_association" "db_assoc" {
   count          = length(aws_subnet.db)
