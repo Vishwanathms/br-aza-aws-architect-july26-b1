@@ -1,0 +1,89 @@
+{
+  "agent": {
+    "metrics_collection_interval": 60,
+    "run_as_user": "root"
+  },
+
+  "metrics": {
+
+    "namespace": "StudentLab",
+
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}"
+    },
+
+    "metrics_collected": {
+
+      "mem": {
+        "measurement": [
+          "mem_used_percent"
+        ]
+      },
+
+      "disk": {
+
+        "measurement": [
+          "used_percent"
+        ],
+
+        "resources": [
+          "*"
+        ]
+      },
+
+      "cpu": {
+
+        "measurement": [
+          "cpu_usage_idle",
+          "cpu_usage_system",
+          "cpu_usage_user"
+        ],
+
+        "totalcpu": true
+      }
+    }
+  },
+
+  "logs": {
+
+    "logs_collected": {
+
+      "files": {
+
+        "collect_list": [
+
+          {
+
+            "file_path": "/var/log/messages",
+
+            "log_group_name": "/application/system",
+
+            "log_stream_name": "{instance_id}"
+
+          },
+
+          {
+
+            "file_path": "/var/log/python-app.log",
+
+            "log_group_name": "/application/python",
+
+            "log_stream_name": "{instance_id}"
+
+          },
+
+          {
+
+            "file_path": "/var/log/redis/redis-server.log",
+
+            "log_group_name": "/application/redis",
+
+            "log_stream_name": "{instance_id}"
+
+          }
+
+        ]
+      }
+    }
+  }
+}
